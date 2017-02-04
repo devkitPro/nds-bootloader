@@ -347,11 +347,12 @@ int main (void) {
 	// Load the NDS file
 	loadBinary_ARM7(fileCluster);
 	
+#ifndef NO_DLDI
 	// Patch with DLDI if desired
 	if (wantToPatchDLDI) {
 		dldiPatchBinary ((u8*)((u32*)NDS_HEAD)[0x0A], ((u32*)NDS_HEAD)[0x0B]);
 	}
-
+#endif
 	// Pass command line arguments to loaded program
 	passArgs_ARM7();
 

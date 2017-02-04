@@ -19,7 +19,7 @@
  If you use this code, please give due credit and email me about your
  project at chishm@hotmail.com
 ------------------------------------------------------------------*/
-
+#ifndef NO_DLDI
 @---------------------------------------------------------------------------------
 	.align	4
 	.arm
@@ -98,3 +98,4 @@ _DLDI_shutdown:
 _dldi_end:
 	.end
 @---------------------------------------------------------------------------------
+#endif
