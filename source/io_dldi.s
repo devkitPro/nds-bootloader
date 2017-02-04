@@ -36,7 +36,11 @@ _dldi_start:
 
 @---------------------------------------------------------------------------------
 @ Driver patch file standard header -- 16 bytes
-	.word	0xBF8DA5EE		@ Magic number to identify this region, *different to normal DLDI*
+#ifdef STANDARD_DLDI
+	.word	0xBF8DA5ED		@ Magic number to identify this region
+#else
+	.word	0xBF8DA5EE		@ Magic number to identify this region
+#endif
 	.asciz	" Chishm"		@ Identifying Magic string (8 bytes with null terminator)
 	.byte	0x01			@ Version number
 	.byte	0x0e		@ 16KiB	@ Log [base-2] of the size of this driver in bytes.
