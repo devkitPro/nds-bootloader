@@ -279,7 +279,7 @@ void startBinary_ARM7 (void) {
 	VoidFn arm7code = *(VoidFn*)(0x2FFFE34);
 	arm7code();
 }
-
+#ifndef NO_SDMMC
 int sdmmc_sd_readsectors(u32 sector_no, u32 numsectors, void *out);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Main function
@@ -295,17 +295,18 @@ bool sdmmc_startup() {
 bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out) {
 	return sdmmc_sdcard_readsectors(sector_no, numsectors, out) == 0;
 }
-
+#endif
 void mpu_reset();
 void mpu_reset_end();
 
 int main (void) {
+#ifndef NO_SDMMC
 	if (dsiSD) {
 		_io_dldi.fn_readSectors = sdmmc_readsectors;
 		_io_dldi.fn_isInserted = sdmmc_inserted;
 		_io_dldi.fn_startup = sdmmc_startup;
 	}
-
+#endif
 	u32 fileCluster = storedFileCluster;
 	// Init card
 	if(!FAT_InitFiles(initDisc))
