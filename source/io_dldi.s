@@ -19,7 +19,6 @@
  If you use this code, please give due credit and email me about your
  project at chishm@hotmail.com
 ------------------------------------------------------------------*/
-#ifndef NO_DLDI
 @---------------------------------------------------------------------------------
 	.align	4
 	.arm
@@ -33,6 +32,7 @@
 
 
 _dldi_start:
+#ifndef NO_DLDI
 
 @---------------------------------------------------------------------------------
 @ Driver patch file standard header -- 16 bytes
@@ -63,7 +63,6 @@ _dldi_start:
 	.word   0x00000000		@ GOT end
 	.word   0x00000000		@ bss start			-- Needs setting to zero
 	.word   0x00000000		@ bss end
-
 @---------------------------------------------------------------------------------
 @ IO_INTERFACE data -- 32 bytes
 _io_dldi:
@@ -75,6 +74,7 @@ _io_dldi:
 	.word	_DLDI_writeSectors		@ 
 	.word	_DLDI_clearStatus		@ 
 	.word	_DLDI_shutdown			@ 
+
 	
 @---------------------------------------------------------------------------------
 
@@ -98,4 +98,27 @@ _DLDI_shutdown:
 _dldi_end:
 	.end
 @---------------------------------------------------------------------------------
+#else
+@---------------------------------------------------------------------------------
+@ IO_INTERFACE data -- 32 bytes
+_io_dldi:
+	.ascii	"DLDI"				@ ioType
+	.word	0x00000000			@ Features
+	.word	_DLDI_startup			@
+	.word	_DLDI_isInserted		@
+	.word	_DLDI_readSectors		@   Function pointers to standard device driver functions
+	.word	_DLDI_writeSectors		@
+	.word	_DLDI_clearStatus		@
+	.word	_DLDI_shutdown			@
+
+	_DLDI_startup:
+_DLDI_isInserted:
+_DLDI_readSectors:
+_DLDI_writeSectors:
+_DLDI_clearStatus:
+_DLDI_shutdown:
+	mov		r0, #0x00		@ Return false for every function
+	bx		lr
+
+
 #endif
