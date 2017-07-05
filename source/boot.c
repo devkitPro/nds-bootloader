@@ -300,6 +300,10 @@ void mpu_reset();
 void mpu_reset_end();
 
 int main (void) {
+#ifdef NO_DLDI
+	dsiSD = true;
+	dsiMode = true;
+#endif
 #ifndef NO_SDMMC
 	if (dsiSD) {
 		_io_dldi.fn_readSectors = sdmmc_readsectors;
