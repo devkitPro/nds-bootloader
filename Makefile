@@ -13,7 +13,7 @@ endif
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
 TARGET		:=	load
-BUILD		:=	build
+BUILD		?=	build
 SOURCES		:=	source source/patches 
 INCLUDES	:=	build
 SPECS		:=  specs
