@@ -214,6 +214,11 @@ void resetMemory_ARM7 (void)
 	} else {
 		boot_readFirmware(settingsOffset + 0x100, (u8*)0x02FFFC80, 0x70);
 	}
+
+	((vu32*)0x040044f0)[2] = 0x202DDD1D;
+	((vu32*)0x040044f0)[3] = 0xE1A00005;
+	while((*(vu32*)0x04004400) & 0x2000000);
+
 }
 
 
@@ -305,7 +310,7 @@ int main (void) {
 	dsiMode = true;
 #endif
 #ifndef NO_SDMMC
-	if (dsiSD) {
+	if (dsiSD && dsiMode) {
 		_io_dldi.fn_readSectors = sdmmc_readsectors;
 		_io_dldi.fn_isInserted = sdmmc_inserted;
 		_io_dldi.fn_startup = sdmmc_startup;
@@ -355,6 +360,12 @@ int main (void) {
 	// Patch with DLDI if desired
 	if (wantToPatchDLDI) {
 		dldiPatchBinary ((u8*)((u32*)NDS_HEAD)[0x0A], ((u32*)NDS_HEAD)[0x0B]);
+	}
+#endif
+
+#ifndef NO_SDMMC
+	if (dsiSD && dsiMode) {
+		sdmmc_controller_init();
 	}
 #endif
 	// Pass command line arguments to loaded program
