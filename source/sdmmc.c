@@ -287,6 +287,12 @@ int sdmmc_sdcard_init() {
     sdmmc_send_command(&deviceSD,0x10437,deviceSD.initarg << 0x10);
     if (deviceSD.error & 0x4) return -1;
 
+    sdmmc_send_command(&deviceSD,0x1076A,0x0);
+    if (deviceSD.error & 0x4) return -1;
+
+    sdmmc_send_command(&deviceSD,0x10437,deviceSD.initarg << 0x10);
+    if (deviceSD.error & 0x4) return -1;
+
     deviceSD.SDOPT = 1;
     sdmmc_send_command(&deviceSD,0x10446,0x2);
     if (deviceSD.error & 0x4) return -1;
