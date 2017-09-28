@@ -46,16 +46,13 @@ Helpful information:
 #undef ARM9
 #define ARM7
 #include <nds/arm7/audio.h>
-
+#include <nds/arm7/sdmmc.h>
 #include "fat.h"
 #include "dldi_patcher.h"
 #include "card.h"
 #include "boot.h"
 
 void arm7clearRAM();
-int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out);
-int sdmmc_sdcard_init();
-void sdmmc_controller_init();
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
@@ -293,7 +290,7 @@ bool sdmmc_inserted() {
 }
 
 bool sdmmc_startup() {
-	sdmmc_controller_init();
+	sdmmc_controller_init(true);
 	return sdmmc_sdcard_init() == 0;
 }
 
@@ -365,7 +362,7 @@ int main (void) {
 
 #ifndef NO_SDMMC
 	if (dsiSD && dsiMode) {
-		sdmmc_controller_init();
+		sdmmc_controller_init(true);
 	}
 #endif
 	// Pass command line arguments to loaded program
