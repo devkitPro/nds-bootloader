@@ -113,6 +113,8 @@ static inline void copyLoop (u32* dest, const u32* src, u32 size) {
 
 //#define resetCpu() __asm volatile("\tswi 0x000000\n");
 
+static char boot_nds[] = "fat:/boot.nds";
+static unsigned long argbuf[4];
 /*-------------------------------------------------------------------------
 passArgs_ARM7
 Copies the command line arguments to the end of the ARM9 binary,
@@ -124,14 +126,27 @@ void passArgs_ARM7 (void) {
 	u32* argSrc;
 	u32* argDst;
 
-	if (!argStart || !argSize) return;
+	if (!argStart || !argSize) {
+
+		char *arg = boot_nds;
+		argSize = __builtin_strlen(boot_nds);
+
+		if (dsiSD) {
+			arg++;
+			arg[0] = 's';
+			arg[1] = 'd';
+		}
+		__builtin_memcpy(argbuf,arg,argSize+1);
+		argSrc = argbuf;
+	} else {
+		argSrc = (u32*)(argStart + (int)&_start);
+	}
 
 	if ( ARM9_DST == 0 && ARM9_LEN == 0) {
 		ARM9_DST = *((u32*)(NDS_HEAD + 0x038));
 		ARM9_LEN = *((u32*)(NDS_HEAD + 0x03C));
 	}
 
-	argSrc = (u32*)(argStart + (int)&_start);
 
 	argDst = (u32*)((ARM9_DST + ARM9_LEN + 3) & ~3);		// Word aligned
 
@@ -363,6 +378,9 @@ int main (void) {
 #ifndef NO_SDMMC
 	if (dsiSD && dsiMode) {
 		sdmmc_controller_init(true);
+		*(vu16*)(SDMMC_BASE + REG_SDDATACTL32) &= 0xFFFDu;
+		*(vu16*)(SDMMC_BASE + REG_SDDATACTL) &= 0xFFDDu;
+		*(vu16*)(SDMMC_BASE + REG_SDBLKLEN32) = 0;
 	}
 #endif
 	// Pass command line arguments to loaded program
