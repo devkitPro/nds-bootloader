@@ -31,7 +31,7 @@ CFLAGS	:=	-g -Wall -Os\
 CFLAGS	+=	$(INCLUDE) $(EXTRA_CFLAGS) -DARM7
 
 ASFLAGS	:=	-g $(ARCH) $(EXTRA_CFLAGS) $(INCLUDE)
-LDFLAGS	=	-nostartfiles -T $(TOPDIR)/load.ld -g $(ARCH) -Wl,-Map,$(TARGET).map
+LDFLAGS	=	-nostartfiles -T $(TOPDIR)/load.ld -Wl,--no-warn-rwx-segments -g $(ARCH) -Wl,-Map,$(TARGET).map
 
 LIBS	:= 
 
