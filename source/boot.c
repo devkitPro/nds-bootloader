@@ -46,11 +46,11 @@ Helpful information:
 #undef ARM9
 #define ARM7
 #include <nds/arm7/audio.h>
-#include <nds/arm7/sdmmc.h>
 #include "fat.h"
 #include "dldi_patcher.h"
 #include "card.h"
 #include "boot.h"
+#include "sdmmc.h"
 
 void arm7clearRAM();
 
