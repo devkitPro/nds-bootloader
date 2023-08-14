@@ -1,7 +1,7 @@
 #ifndef NO_SDMMC
 #include <nds/bios.h>
-#include <nds/arm7/sdmmc.h>
 #include <stddef.h>
+#include "sdmmc.h"
 
 static struct mmcdevice deviceSD;
 
