@@ -38,13 +38,7 @@ Helpful information:
 #include <nds/system.h>
 #include <nds/interrupts.h>
 #include <nds/timers.h>
-#define ARM9
-#undef ARM7
 #include <nds/memory.h>
-#include <nds/arm9/video.h>
-#include <nds/arm9/input.h>
-#undef ARM9
-#define ARM7
 #include <nds/arm7/audio.h>
 #include "fat.h"
 #include "dldi_patcher.h"
