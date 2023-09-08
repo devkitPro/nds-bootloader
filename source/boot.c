@@ -40,6 +40,7 @@ Helpful information:
 #include <nds/timers.h>
 #include <nds/memory.h>
 #include <nds/arm7/audio.h>
+#include <calico/nds/env.h>
 #include "fat.h"
 #include "dldi_patcher.h"
 #include "card.h"
@@ -50,7 +51,7 @@ void arm7clearRAM();
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
-#define TEMP_MEM 0x02FFD000
+#define TEMP_MEM MM_ENV_FREE_D000
 #define TWL_HEAD 0x02FFE000
 #define NDS_HEAD 0x02FFFE00
 #define TEMP_ARM9_START_ADDRESS (*(vu32*)0x02FFFFF4)
@@ -158,9 +159,9 @@ void passArgs_ARM7 (void) {
 
 	copyLoop(argDst, argSrc, argSize);
 
-	__system_argv->argvMagic = ARGV_MAGIC;
-	__system_argv->commandLine = (char*)argDst;
-	__system_argv->length = argSize;
+	g_envNdsArgvHeader->magic = ENV_NDS_ARGV_MAGIC;
+	g_envNdsArgvHeader->args_str = (char*)argDst;
+	g_envNdsArgvHeader->args_str_size = argSize;
 }
 
 
