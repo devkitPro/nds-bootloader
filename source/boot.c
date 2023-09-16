@@ -73,8 +73,8 @@ extern unsigned long dsiMode;
 
 #define FW_READ        0x03
 
-void boot_readFirmware (uint32 address, uint8 * buffer, uint32 size) {
-  uint32 index;
+void boot_readFirmware (u32 address, u8 * buffer, u32 size) {
+  u32 index;
 
   // Read command
   while (REG_SPICNT & SPI_BUSY);
