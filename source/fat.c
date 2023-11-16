@@ -36,6 +36,8 @@ License:
 //---------------------------------------------------------------
 // FAT constants
 
+#define BYTES_PER_SECTOR 512
+
 #define FILE_LAST 0x00
 #define FILE_FREE 0xE5
 

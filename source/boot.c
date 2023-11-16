@@ -42,7 +42,6 @@ Helpful information:
 #include <nds/arm7/audio.h>
 #include <calico/nds/env.h>
 #include "fat.h"
-#include "dldi_patcher.h"
 #include "card.h"
 #include "boot.h"
 #include "sdmmc.h"
@@ -61,7 +60,6 @@ const char* bootName = "BOOT.NDS";
 
 extern unsigned long _start;
 extern unsigned long storedFileCluster;
-extern unsigned long initDisc;
 extern unsigned long wantToPatchDLDI;
 extern unsigned long argStart;
 extern unsigned long argSize;
@@ -318,14 +316,14 @@ int main (void) {
 #endif
 #ifndef NO_SDMMC
 	if (dsiSD && dsiMode) {
-		_io_dldi.fn_readSectors = sdmmc_readsectors;
-		_io_dldi.fn_isInserted = sdmmc_inserted;
-		_io_dldi.fn_startup = sdmmc_startup;
+		_io_dldi.readSectors = sdmmc_readsectors;
+		_io_dldi.isInserted = sdmmc_inserted;
+		_io_dldi.startup = sdmmc_startup;
 	}
 #endif
 	u32 fileCluster = storedFileCluster;
 	// Init card
-	if(!FAT_InitFiles(initDisc))
+	if(!FAT_InitFiles(true))
 	{
 		return -1;
 	}
@@ -366,7 +364,7 @@ int main (void) {
 #ifndef NO_DLDI
 	// Patch with DLDI if desired
 	if (wantToPatchDLDI) {
-		dldiPatchBinary ((u8*)((u32*)NDS_HEAD)[0x0A], ((u32*)NDS_HEAD)[0x0B]);
+		dldiPatchBinary((u8*)((u32*)NDS_HEAD)[0x0A], ((u32*)NDS_HEAD)[0x0B], &_dldi_start);
 	}
 #endif
 
