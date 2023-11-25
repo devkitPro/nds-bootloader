@@ -46,15 +46,12 @@ Helpful information:
 #include "boot.h"
 #include "sdmmc.h"
 
-void arm7clearRAM();
-
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
 #define TEMP_MEM MM_ENV_FREE_D000
 #define TWL_HEAD 0x02FFE000
 #define NDS_HEAD 0x02FFFE00
 #define TEMP_ARM9_START_ADDRESS (*(vu32*)0x02FFFFF4)
-
 
 const char* bootName = "BOOT.NDS";
 
@@ -198,7 +195,20 @@ void resetMemory_ARM7 (void)
 		TIMER_DATA(i) = 0;
 	}
 
-	arm7clearRAM();
+	// Clear most of ARM7 exclusive WRAM
+	extern char __sys_start[];
+	armFillMem32((void*)MM_A7WRAM, 0, __sys_start - (char*)MM_A7WRAM);
+
+	// Clear most of main RAM
+	uptr main_ram_clr_begin = dsiMode ? MM_ENV_TWL_AUTOLOAD_EXT : MM_MAINRAM;
+	uptr main_ram_clr_end = MM_ENV_HB_BOOTSTUB - (dsiMode ? 0 : (MM_MAINRAM_SZ_TWL-MM_MAINRAM_SZ_NTR));
+	armFillMem32((void*)main_ram_clr_begin, 0, main_ram_clr_end-main_ram_clr_begin);
+
+	// Repair ARM7 mirror of SCFG regs if they have been previously cleared out
+	if (dsiMode && !__scfg_buf.ext && !__scfg_buf.other) {
+		__scfg_buf.ext = g_scfgBackup->ext;
+		__scfg_buf.other = g_scfgBackup->other;
+	}
 
 	REG_IE = 0;
 	REG_IF = ~0;
