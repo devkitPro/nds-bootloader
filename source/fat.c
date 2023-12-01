@@ -507,7 +507,7 @@ u32 getBootFileCluster (const char* bootName)
 /*-----------------------------------------------------------------
 fileRead(buffer, cluster, startOffset, length)
 -----------------------------------------------------------------*/
-u32 fileRead (char* buffer, u32 cluster, u32 startOffset, u32 length)
+u32 fileRead (void* buffer_, u32 cluster, u32 startOffset, u32 length)
 {
 	int curByte;
 	int curSect;
@@ -515,6 +515,8 @@ u32 fileRead (char* buffer, u32 cluster, u32 startOffset, u32 length)
 	int dataPos = 0;
 	int chunks;
 	int beginBytes;
+
+	char* buffer = buffer_;
 
 	if (cluster == CLUSTER_FREE || cluster == CLUSTER_EOF) 
 	{
