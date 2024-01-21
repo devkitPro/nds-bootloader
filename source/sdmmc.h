@@ -141,10 +141,12 @@ static inline void sdmmc_sdcard_cid( u32 *cid) {
     sdmmc_get_cid(MMC_DEVICE_SDCARD,cid);
 }
 
-int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out);
+bool sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out);
+/*
 int sdmmc_sdcard_writesectors(u32 sector_no, u32 numsectors, void *in);
 int sdmmc_nand_readsectors(u32 sector_no, u32 numsectors, void *out);
 int sdmmc_nand_writesectors(u32 sector_no, u32 numsectors, void *in);
+*/
 
 extern u32 sdmmc_cid[];
 extern int sdmmc_curdevice;

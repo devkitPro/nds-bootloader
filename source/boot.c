@@ -42,10 +42,10 @@ Helpful information:
 #include <nds/arm7/audio.h>
 #include <calico/nds/env.h>
 #include <calico/nds/arm7/aes.h>
-#include "fat.h"
-#include "card.h"
 #include "boot.h"
+#include "io_dldi.h"
 #include "sdmmc.h"
+#include "minifat.h"
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Important things
@@ -67,6 +67,8 @@ static uptr temp_arm9_start_address;
 
 static char boot_nds[] = "fat:/boot.nds";
 static unsigned long argbuf[4];
+
+static MiniFat fatState;
 
 /*-------------------------------------------------------------------------
 passArgs_ARM7
@@ -178,11 +180,11 @@ static void loadBinary_ARM7 (u32 fileCluster)
 	EnvNdsHeader ndsHeader;
 
 	// read NDS header
-	fileRead(&ndsHeader, fileCluster, 0, sizeof(ndsHeader));
+	minifatRead(&fatState, fileCluster, &ndsHeader, 0, sizeof(ndsHeader));
 
 	// Load binaries into memory
-	fileRead((void*)ndsHeader.arm9_ram_address, fileCluster, ndsHeader.arm9_rom_offset, ndsHeader.arm9_size);
-	fileRead((void*)ndsHeader.arm7_ram_address, fileCluster, ndsHeader.arm7_rom_offset, ndsHeader.arm7_size);
+	minifatRead(&fatState, fileCluster, (void*)ndsHeader.arm9_ram_address, ndsHeader.arm9_rom_offset, ndsHeader.arm9_size);
+	minifatRead(&fatState, fileCluster, (void*)ndsHeader.arm7_ram_address, ndsHeader.arm7_rom_offset, ndsHeader.arm7_size);
 
 	// first copy the header to its proper location, excluding
 	// the ARM9 start address, so as not to start it
@@ -193,13 +195,13 @@ static void loadBinary_ARM7 (u32 fileCluster)
 	if (dsiMode && (ndsHeader.unitcode & BIT(1)))
 	{
 		// Read full TWL header
-		fileRead(g_envAppTwlHeader, fileCluster, 0, sizeof(EnvTwlHeader));
+		minifatRead(&fatState, fileCluster, g_envAppTwlHeader, 0, sizeof(EnvTwlHeader));
 
 		// Load TWL binaries into memory
 		if (g_envAppTwlHeader->arm9i_size)
-			fileRead((void*)g_envAppTwlHeader->arm9i_ram_address, fileCluster, g_envAppTwlHeader->arm9i_rom_offset, g_envAppTwlHeader->arm9i_size);
+			minifatRead(&fatState, fileCluster, (void*)g_envAppTwlHeader->arm9i_ram_address, g_envAppTwlHeader->arm9i_rom_offset, g_envAppTwlHeader->arm9i_size);
 		if (g_envAppTwlHeader->arm7i_size)
-			fileRead((void*)g_envAppTwlHeader->arm7i_ram_address, fileCluster, g_envAppTwlHeader->arm7i_rom_offset, g_envAppTwlHeader->arm7i_size);
+			minifatRead(&fatState, fileCluster, (void*)g_envAppTwlHeader->arm7i_ram_address, g_envAppTwlHeader->arm7i_rom_offset, g_envAppTwlHeader->arm7i_size);
 	}
 }
 
@@ -222,23 +224,6 @@ static void startBinary_ARM7 (void) {
 	arm7code();
 }
 
-#ifndef NO_SDMMC
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Main function
-static bool sdmmc_inserted() {
-	return true;
-}
-
-static bool sdmmc_startup() {
-	sdmmc_controller_init(true);
-	return sdmmc_sdcard_init() == 0;
-}
-
-static bool sdmmc_readsectors(u32 sector_no, u32 numsectors, void *out) {
-	return sdmmc_sdcard_readsectors(sector_no, numsectors, out) == 0;
-}
-#endif
-
 extern const char mpu_reset[];
 extern const char mpu_reset_end[];
 
@@ -248,27 +233,40 @@ int main (void) {
 	dsiMode = true;
 #endif
 
+	bool ok = false;
+	MiniFatDiscReadFn readFn;
+
 #ifndef NO_SDMMC
 	if (dsiSD && dsiMode) {
-		_io_dldi.readSectors = sdmmc_readsectors;
-		_io_dldi.isInserted = sdmmc_inserted;
-		_io_dldi.startup = sdmmc_startup;
+		sdmmc_controller_init(true);
+		ok = sdmmc_sdcard_init() == 0;
+		readFn = sdmmc_sdcard_readsectors;
+	}
+#ifndef NO_DLDI
+	else
+#endif
+#endif
+#ifndef NO_DLDI
+	{
+		ok = _io_dldi.startup();
+		readFn = _io_dldi.readSectors;
 	}
 #endif
 
 	u32 fileCluster = storedFileCluster;
 	// Init card
-	if(!FAT_InitFiles(true))
+	if(!ok || !minifatInit(&fatState, readFn, 0))
 	{
 		return -1;
 	}
-	if ((fileCluster < CLUSTER_FIRST) || (fileCluster >= CLUSTER_EOF)) 	/* Invalid file cluster specified */
+	if (fileCluster < MINIFAT_CLUSTER_FIRST) 	/* Invalid file cluster specified */
 	{
-		fileCluster = getBootFileCluster(DEFAULT_BOOT_NAME);
-	}
-	if (fileCluster == CLUSTER_FREE)
-	{
-		return -1;
+		MiniFatDirEnt ent;
+		fileCluster = minifatFind(&fatState, 0, DEFAULT_BOOT_NAME, &ent);
+		if (fileCluster < MINIFAT_CLUSTER_FIRST || (ent.attrib & MINIFAT_ATTRIB_DIR))
+		{
+			return -1;
+		}
 	}
 
 	// ARM9 clears its memory part 2

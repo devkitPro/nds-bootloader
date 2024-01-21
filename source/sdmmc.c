@@ -6,7 +6,7 @@
 static struct mmcdevice deviceSD;
 
 //---------------------------------------------------------------------------------
-int geterror(struct mmcdevice *ctx) {
+static int geterror(struct mmcdevice *ctx) {
 //---------------------------------------------------------------------------------
     //if(ctx->error == 0x4) return -1;
     //else return 0;
@@ -15,7 +15,7 @@ int geterror(struct mmcdevice *ctx) {
 
 
 //---------------------------------------------------------------------------------
-void setTarget(struct mmcdevice *ctx) {
+static void setTarget(struct mmcdevice *ctx) {
 //---------------------------------------------------------------------------------
     sdmmc_mask16(REG_SDPORTSEL,0x3,(u16)ctx->devicenumber);
     setckl(ctx->clk);
@@ -29,7 +29,7 @@ void setTarget(struct mmcdevice *ctx) {
 
 
 //---------------------------------------------------------------------------------
-void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t args) {
+static void sdmmc_send_command(struct mmcdevice *ctx, uint32_t cmd, uint32_t args) {
 //---------------------------------------------------------------------------------
     int i;
     bool getSDRESP = (cmd << 15) >> 31;
@@ -223,7 +223,7 @@ int sdmmc_sdcard_init() {
 }
 
 //---------------------------------------------------------------------------------
-int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out) {
+bool sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out) {
 //---------------------------------------------------------------------------------
     if (deviceSD.isSDHC == 0)
         sector_no <<= 9;
@@ -237,6 +237,6 @@ int sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out) {
     deviceSD.data = out;
     deviceSD.size = numsectors << 9;
     sdmmc_send_command(&deviceSD,0x33C12,sector_no);
-    return geterror(&deviceSD);
+    return geterror(&deviceSD) == 0;
 }
 #endif

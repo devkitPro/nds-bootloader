@@ -38,7 +38,7 @@ _start:
 	b	startUp
 
 storedFileCluster:
-	.word	0x0FFFFFFF		@ default BOOT.NDS
+	.word	0				@ default BOOT.NDS
 wantToPatchDLDI:
 	.word	0x00000001		@ by default patch the DLDI section of the loaded NDS
 @ Used for passing arguments to the loaded app
